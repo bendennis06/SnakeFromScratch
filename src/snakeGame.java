@@ -29,7 +29,9 @@ public class snakeGame extends JPanel implements ActionListener, KeyListener {
     int randomColFood = rand.nextInt(cols);
 
     //snakeBody array
-    ArrayList<Point> snakeBody = new ArrayList<>();
+    ArrayList<int[]> snakeBody = new ArrayList<>();
+
+    int foodCount = 0;
 
 
 
@@ -55,6 +57,7 @@ public class snakeGame extends JPanel implements ActionListener, KeyListener {
         updateGame();
         repaint();
         snakeBody();
+        gameOver();
     }
 
     private void updateGame(){
@@ -66,14 +69,45 @@ public class snakeGame extends JPanel implements ActionListener, KeyListener {
 
     private void snakeBody(){
         //check snakeHead and food tile collision
-        if(snakeHeadX == randomColFood && snakeHeadY == randomRowFood) {
-            //create new body tile
-            snakeBody.add(new Point(snakeHeadX, snakeHeadY));
+        if (snakeHeadX == randomColFood && snakeHeadY == randomRowFood) {
+            // Add new body segment at the head
+            snakeBody.add(0, new int[]{snakeHeadX, snakeHeadY});
 
-            //respawn food
+            foodCount++;
+
+            // Respawn food
             randomRowFood = rand.nextInt(rows);
             randomColFood = rand.nextInt(cols);
+        } else if (snakeBody.size() > 0) {
+            // Move body segments when snake hasn't eaten food
+            for (int i = snakeBody.size() - 1; i > 0; i--) {
+                snakeBody.get(i)[0] = snakeBody.get(i - 1)[0]; // x val
+                snakeBody.get(i)[1] = snakeBody.get(i - 1)[1]; // y val
+            }
+            // Move head to the first position
+            snakeBody.get(0)[0] = snakeHeadX;
+            snakeBody.get(0)[1] = snakeHeadY;
+
         }
+       // start with body tile
+         if(snakeBody.size() == 0){
+           snakeBody.add(new int[] {snakeHeadX, snakeHeadY});
+        }
+
+    }
+
+    private void gameOver(){
+        if(snakeHeadX < 0  || snakeHeadX >= cols || snakeHeadY < 0  || snakeHeadY >= rows ){
+            timer.stop();
+        }
+        //start from second element to avoid initial collision when game begins
+        for(int i = 1; i < snakeBody.size(); i++){
+            //check for body collision
+            if (snakeBody.get(i)[0] == snakeHeadX && snakeBody.get(i)[1] == snakeHeadY) {
+                timer.stop();
+            }
+        }
+
     }
 
     @Override
@@ -93,6 +127,10 @@ public class snakeGame extends JPanel implements ActionListener, KeyListener {
             g.drawLine(y * boardWidth / cols, 0, y * boardWidth/cols, boardHeight);
         }
 
+        //board color
+        g.setColor(Color.black);
+        g.fillRect(0, 0, boardWidth, boardHeight);
+
         // Calculate the pixel position of the snake head
         int headPixelX = snakeHeadX * (boardWidth/ cols); //col * (cell width)
         int headPixelY = snakeHeadY * (boardHeight/ rows);// row * (cell height)
@@ -108,12 +146,16 @@ public class snakeGame extends JPanel implements ActionListener, KeyListener {
 
         //draw snake body
         g.setColor(Color.GREEN);
-        for(Point bodyPart : snakeBody){
-            int bodyPixelX = bodyPart.x * (boardWidth/ cols);
-            int bodyPixelY =  bodyPart.y * (boardHeight / rows);
+        for(int[] segment : snakeBody){
+            int bodyPixelX = segment[0] * (boardWidth/ cols);
+            int bodyPixelY =  segment[1] * (boardHeight / rows);
             g.fillRect(bodyPixelX, bodyPixelY, boardWidth/cols, boardHeight/rows);
 
         }
+        //score
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 18));
+        g.drawString("Score: " + foodCount, 10, 20);
     }
 
 

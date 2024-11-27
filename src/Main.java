@@ -14,6 +14,7 @@ public class Main {
         frame.setSize( boardWidth, boardHeight);
         frame.setLocationRelativeTo(null);
 
+
         snakeGame game = new snakeGame(boardHeight, boardWidth);
         frame.add(game);
         frame.pack(); //adjust frame size to fit to panel
